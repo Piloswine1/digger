@@ -1,0 +1,14 @@
+[tools]
+go = "latest"
+
+[tasks.'podman:socket']
+run = [
+        'podman system service -t 0',
+]
+
+[tasks.dev]
+sources = ["cmd/main.go", "inner/**/*.go"]
+run = "go run cmd/main.go"
+
+[env]
+DOCKER_HOST = 'unix:///run/user/1000/podman/podman.sock'
