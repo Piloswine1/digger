@@ -3,6 +3,7 @@ package docker
 import (
 	"log/slog"
 	"net/http"
+	"os"
 
 	"github.com/gin-gonic/gin"
 	"github.com/moby/moby/client"
@@ -17,6 +18,8 @@ var NewDockerClient = func() (*client.Client, error) {
 }
 
 var MustNewDockerClient = func(c *gin.Context) *client.Client {
+    slog.Debug("attemp to get docker",
+        "DOCKER_HOST", os.Getenv("DOCKER_HOST"))
     client, err := client.New(
 		client.FromEnv,
 		client.WithUserAgent("digger/0.0.1"),

@@ -10,5 +10,24 @@ run = [
 sources = ["cmd/main.go", "inner/**/*.go"]
 run = "go run cmd/main.go"
 
+[tasks.'build:front']
+dir = "front"
+sources = ["src/**/*.{ts,vue}", "package.json"]
+outputs = ["dist/**/*"]
+run = "pnpm build"
+
+[tasks.'prepare:dist']
+depends = ["build:front"]
+description = "prepares front to backend"
+run = "cp -r ./front/dist/* ./inner/rest/dist/"
+
+[tasks.'build:docker']
+run = 'podman build -t digger .'
+
+[tasks.'run:docker']
+depends = ["build:docker"]
+run = "script/run.sh"
+
 [env]
 DOCKER_HOST = 'unix:///run/user/1000/podman/podman.sock'
+GIN_MODE = 'debug'

@@ -1,16 +1,18 @@
 package rest
 
 import (
-	"io"
 	"log/slog"
 	"net/http"
 	"strconv"
 
+	"digger/inner/config"
 	"digger/inner/docker"
 	"digger/inner/rest/dto"
 	"digger/inner/rest/model"
 
+	"github.com/gin-contrib/gzip"
 	"github.com/gin-gonic/gin"
+	"github.com/moby/moby/api/pkg/stdcopy"
 	"github.com/moby/moby/client"
 )
 
@@ -23,7 +25,7 @@ func GetActiveContainers(c *gin.Context) {
 	})
 	if err != nil {
 		HandleError(c, err, "failed to get container list")
-        return
+		return
 	}
 
 	arr := make([]model.ActiveContainer, len(got.Items))
@@ -38,39 +40,33 @@ func GetActiveContainers(c *gin.Context) {
 }
 
 func GetContainerLogs(c *gin.Context) {
-	var params dto.GetLogs
-	if err := c.BindUri(&params); err != nil {
+	params := dto.GetLogs{}
+	if err := params.FromReq(c); err != nil {
 		HandleError(c, err, "wrong params")
-        return
+		return
 	}
-
-	if err := c.BindQuery(&params); err != nil {
-		HandleError(c, err, "wrong params")
-        return
-	}
-
-    if params.Limit <= 0 {
-        params.Limit = 1000
-    }
 
 	doc := docker.MustNewDockerClient(c)
 	defer doc.Close()
 
-    slog.Debug("params", "limit", params.Limit)
+	slog.Debug("reading logs",
+		"id", params.ID,
+		"limit", params.Limit,
+        "stderr", params.StdErr)
 	res, err := doc.ContainerLogs(c, params.ID, client.ContainerLogsOptions{
 		ShowStdout: true,
-		ShowStderr: true,
-        Tail: strconv.Itoa(params.Limit),
+		ShowStderr: params.StdErr,
+		Tail:       strconv.Itoa(params.Limit),
 	})
 	if err != nil {
 		HandleError(c, err, "failed to read logs")
-        return
+		return
 	}
 
-    // TODO: parse logs format
-    c.Header("Content-Type", "text/plain")
-	c.Header("Content-Disposition", "ttachment; filename=\"logs.txt\"")
-	_, err = io.Copy(c.Writer, res)
+	// TODO: parse logs format
+	c.Header("Content-Type", "text/plain")
+	c.Header("Content-Disposition", "attachment; filename=\"logs.txt\"")
+	_, err = stdcopy.StdCopy(c.Writer, c.Writer, res)
 	if err != nil {
 		slog.Error("failed to write logs", "err", err)
 	}
@@ -78,11 +74,12 @@ func GetContainerLogs(c *gin.Context) {
 
 func CollectRoutes(e *gin.RouterGroup) {
 	e.GET("/ping", func(c *gin.Context) {
-		c.JSON(http.StatusOK, gin.H{
-			"message": "pong",
-		})
+		c.String(http.StatusOK, "pong")
 	})
 
-	e.GET("/containers", GetActiveContainers)
-	e.GET("/containers/:id/logs", GetContainerLogs)
+	g := e.Group("/containers",
+		config.Auth(),
+		gzip.Gzip(gzip.DefaultCompression))
+	g.GET("", GetActiveContainers)
+	g.GET(":id/logs", GetContainerLogs)
 }

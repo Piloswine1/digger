@@ -1,6 +1,7 @@
 package rest
 
 import (
+	"digger/inner/config"
 	"log/slog"
 
 	"github.com/gin-gonic/gin"
@@ -8,15 +9,15 @@ import (
 )
 
 func InitApp() {
-	r := gin.New()
+	r := config.GetGin()
 
-    slog.SetLogLoggerLevel(slog.LevelDebug)
-	logger := slog.Default()
+    logger := config.GetLogger()
 	r.Use(sloggin.New(logger))
-
 	r.Use(gin.Recovery())
 
-    group := r.Group("/v1")
+    UpUI(r)
+
+    group := r.Group("/api/v1")
 	CollectRoutes(group)
 
     slog.Info("starting server as 0.0.0.0:8080")
