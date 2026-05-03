@@ -10,8 +10,6 @@ run = "go run cmd/main.go"
 
 [tasks.'build:front']
 dir = "front"
-sources = ["src/**/*.{ts,vue}", "package.json"]
-outputs = ["dist/**/*"]
 run = "pnpm build"
 
 [tasks.'prepare:dist']

@@ -1,14 +1,19 @@
 <script setup lang="ts">
 import { computed } from 'vue'
-import type { ContainerInfo } from '../api'
 import { Card } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
-import { Container } from '@lucide/vue'
+import { Container, RotateCw, Square, Play } from '@lucide/vue'
+
+import type { ContainerInfo } from '../api'
+import { useContainerActions } from '../composables/useContainerActions'
 
 const props = defineProps<{
   container: ContainerInfo
 }>()
+
+const {restart, stop, start} = useContainerActions()
 
 const shortId = computed(() => props.container.Id.slice(0, 12))
 const containerVariant = computed(() => {
@@ -17,6 +22,7 @@ const containerVariant = computed(() => {
   if (stat.startsWith('Exited')) return 'error';
   return 'secondary';
 })
+const isRunning = computed(() => props.container.Status.startsWith('Up'))
 const selected = defineModel<string>();
 </script>
 
@@ -45,6 +51,38 @@ const selected = defineModel<string>();
         >
           {{ container.Status }}
         </Badge>
+      </div>
+      <div class="flex items-center gap-0.5 shrink-0" @click.stop>
+        <template v-if="isRunning">
+          <Button
+            variant="ghost"
+            size="icon-sm"
+            title="Restart"
+            :disabled="restart.isPending.value"
+            @click="restart.mutate(container.Id)"
+          >
+            <RotateCw />
+          </Button>
+          <Button
+            variant="ghost"
+            size="icon-sm"
+            title="Stop"
+            :disabled="stop.isPending.value"
+            @click="stop.mutate(container.Id)"
+          >
+            <Square />
+          </Button>
+        </template>
+        <Button
+          v-else
+          variant="ghost"
+          size="icon-sm"
+          title="Start"
+          :disabled="start.isPending.value"
+          @click="start.mutate(container.Id)"
+        >
+          <Play />
+        </Button>
       </div>
     </div>
   </Card>
