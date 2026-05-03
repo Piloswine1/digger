@@ -1,5 +1,6 @@
 import { useQuery } from '@tanstack/vue-query'
 import { toValue, type MaybeRefOrGetter } from 'vue'
+
 import { getContainerLogs } from '../api'
 
 export function useContainerLogs(
@@ -11,7 +12,7 @@ export function useContainerLogs(
 ) {
   return useQuery({
     queryKey: ['container-logs', id, limit, stderr] as const,
-    queryFn: () => getContainerLogs(toValue(id), toValue(limit), toValue(stderr)),
+    queryFn: ({signal}) => getContainerLogs(toValue(id), toValue(limit), toValue(stderr), signal),
     refetchInterval: () => (toValue(autoRefresh) ? toValue(refreshInterval) : false),
     enabled: () => !!toValue(id),
   })

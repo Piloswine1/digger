@@ -17,22 +17,29 @@ import (
 )
 
 func GetActiveContainers(c *gin.Context) {
+    params := dto.ContainersReq{}
+    if err := params.FromReq(c); err != nil {
+        HandleError(c, err, "failed to get containers req")
+        return
+    }
+
 	doc := docker.MustNewDockerClient(c)
 	defer doc.Close()
 
 	got, err := doc.ContainerList(c, client.ContainerListOptions{
-		Filters: make(client.Filters).Add("status", "running"),
-	})
+        All: params.All,
+    })
 	if err != nil {
 		HandleError(c, err, "failed to get container list")
 		return
 	}
 
-	arr := make([]model.ActiveContainer, len(got.Items))
+	arr := make([]model.ContainerInfo, len(got.Items))
 	for i, v := range got.Items {
-		arr[i] = model.ActiveContainer{
-			Id:   v.ID,
-			Name: v.Names[0],
+		arr[i] = model.ContainerInfo{
+			Id:     v.ID,
+			Name:   v.Names[0],
+			Status: v.Status,
 		}
 	}
 
@@ -52,7 +59,7 @@ func GetContainerLogs(c *gin.Context) {
 	slog.Debug("reading logs",
 		"id", params.ID,
 		"limit", params.Limit,
-        "stderr", params.StdErr)
+		"stderr", params.StdErr)
 	res, err := doc.ContainerLogs(c, params.ID, client.ContainerLogsOptions{
 		ShowStdout: true,
 		ShowStderr: params.StdErr,
@@ -72,6 +79,66 @@ func GetContainerLogs(c *gin.Context) {
 	}
 }
 
+func RestartContainer(c *gin.Context) {
+    params := dto.ContainerID{}
+    if err := params.FromReq(c); err != nil {
+        HandleError(c, err, "failed to get containers req")
+        return
+    }
+
+	doc := docker.MustNewDockerClient(c)
+	defer doc.Close()
+
+    slog.Debug("restarting container", "id", params.ID)
+    _, err := doc.ContainerRestart(c, params.ID, client.ContainerRestartOptions{})
+    if err != nil {
+        HandleError(c, err, "failed to restart container")
+        return
+    }
+
+	c.String(http.StatusOK, "ok")
+}
+
+func StopContainer(c *gin.Context) {
+    params := dto.ContainerID{}
+    if err := params.FromReq(c); err != nil {
+        HandleError(c, err, "failed to get containers req")
+        return
+    }
+
+	doc := docker.MustNewDockerClient(c)
+	defer doc.Close()
+
+    slog.Debug("stopping container", "id", params.ID)
+    _, err := doc.ContainerStop(c, params.ID, client.ContainerStopOptions{})
+    if err != nil {
+        HandleError(c, err, "failed to stop container")
+        return
+    }
+
+	c.String(http.StatusOK, "ok")
+}
+
+func StartContainer(c *gin.Context) {
+    params := dto.ContainerID{}
+    if err := params.FromReq(c); err != nil {
+        HandleError(c, err, "failed to get containers req")
+        return
+    }
+
+	doc := docker.MustNewDockerClient(c)
+	defer doc.Close()
+
+    slog.Debug("starting container", "id", params.ID)
+    _, err := doc.ContainerStart(c, params.ID, client.ContainerStartOptions{})
+    if err != nil {
+        HandleError(c, err, "failed to start container")
+        return
+    }
+
+	c.String(http.StatusOK, "ok")
+}
+
 func CollectRoutes(e *gin.RouterGroup) {
 	e.GET("/ping", func(c *gin.Context) {
 		c.String(http.StatusOK, "pong")
@@ -82,4 +149,8 @@ func CollectRoutes(e *gin.RouterGroup) {
 		gzip.Gzip(gzip.DefaultCompression))
 	g.GET("", GetActiveContainers)
 	g.GET(":id/logs", GetContainerLogs)
+
+	g.POST(":id/restart", RestartContainer)
+	g.POST(":id/stop", StopContainer)
+	g.POST(":id/start", StartContainer)
 }

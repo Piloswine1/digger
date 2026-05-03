@@ -1,6 +1,7 @@
 package model
 
-type ActiveContainer struct {
-	Id   string
-	Name string
+type ContainerInfo struct {
+	Id     string
+	Name   string
+	Status string
 }

@@ -24,7 +24,7 @@ func getPrefix() string {
 	return "/ui"
 }
 
-func UpUI(e *gin.Engine) {
+func CollectUi(e *gin.Engine) {
 	prefix := getPrefix()
 	g := e.Group(prefix,
 		config.Auth(),

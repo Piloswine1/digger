@@ -2,25 +2,29 @@
 import { ref } from 'vue'
 import { useContainers } from './composables/useContainers'
 import { Button } from '@/components/ui/button'
+import ModeToggle from '@/components/ModeToggle.vue'
 import { RefreshCw } from '@lucide/vue'
-import { cn } from '@/lib/utils'
 
 import ContainerCard from './components/ContainerCard.vue'
 import LogViewer from './components/LogViewer.vue'
+import ContainersSelector from './components/ContainersSelector.vue'
+import type { ContainersMode } from './api'
 
-const { data: containers, isLoading, isError, error, refetch } = useContainers()
+const containersMode = ref<ContainersMode>('all')
+const { data: containers, isLoading, isError, error, refetch } = useContainers(containersMode);
 
 const selectedContainerId = ref('')
 </script>
 
 <template>
-  <div class="min-h-screen p-6 max-w-7xl mx-auto">
-    <div class="flex items-center justify-between mb-6">
-      <h1 class="text-2xl font-bold">Containers</h1>
+  <div class="min-h-screen pr6 max-w-7xl mx-auto">
+    <div class="flex items-crnter gap-2 mb-6 pt-4">
+      <ContainersSelector v-model="containersMode" class="flex-1" />
       <Button variant="outline" size="sm" @click="refetch()" :disabled="isLoading">
-        <RefreshCw :class="cn('h-4 w-4', isLoading && 'animate-spin')" />
+        <RefreshCw :class="isLoading && 'animate-spin'" />
         Refresh
       </Button>
+      <ModeToggle />
     </div>
 
     <div v-if="isLoading" class="text-muted-foreground text-sm">Loading containers...</div>
@@ -36,8 +40,7 @@ const selectedContainerId = ref('')
           v-for="c in containers"
           :key="c.Id"
           :container="c"
-          :selected="selectedContainerId === c.Id"
-          @click="selectedContainerId = c.Id"
+          v-model="selectedContainerId"
         />
       </div>
 
