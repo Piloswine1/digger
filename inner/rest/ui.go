@@ -16,16 +16,16 @@ import (
 var f embed.FS
 
 func getPrefix() string {
-	uiPath := os.Getenv("UI_PATH")
-	if uiPath != "" {
-		return uiPath
-	}
-
-	return "/ui"
+	return os.Getenv("BASE_URL") + "/ui"
 }
 
-func CollectUi(e *gin.Engine) {
+func getAPIBaseURL() string {
+	return os.Getenv("BASE_URL")
+}
+
+func CollectUI(e *gin.Engine) {
 	prefix := getPrefix()
+	apiBaseUrl := getAPIBaseURL()
 	g := e.Group(prefix,
 		config.Auth(),
 		gzip.Gzip(gzip.BestCompression))
@@ -33,7 +33,8 @@ func CollectUi(e *gin.Engine) {
 	e.LoadHTMLFS(http.FS(f), "dist/index.tmpl")
 	g.GET("", func(c *gin.Context) {
 		c.HTML(http.StatusOK, "dist/index.tmpl", gin.H{
-			"prefix": prefix,
+			"prefix":     prefix,
+			"apiBaseUrl": apiBaseUrl,
 		})
 	})
 

@@ -9,7 +9,7 @@ import (
 )
 
 func HandleError(c *gin.Context, err error, msg string) {
-    slog.Error(msg, err)
+    slog.Error(msg, "err", err)
 
     errF := eris.ToJSON(eris.Wrap(err, msg), true)
     c.JSON(http.StatusInternalServerError, gin.H{

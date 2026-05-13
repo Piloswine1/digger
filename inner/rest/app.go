@@ -15,7 +15,7 @@ func InitApp() {
 	r.Use(sloggin.New(logger))
 	r.Use(gin.Recovery())
 
-    CollectUi(r)
+    CollectUI(r)
 
     group := r.Group("/api/v1")
 	CollectRoutes(group)

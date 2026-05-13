@@ -15,10 +15,13 @@ run = "pnpm build"
 [tasks.'prepare:dist']
 depends = ["build:front"]
 description = "prepares front to backend"
-run = "cp -r ./front/dist/* ./inner/rest/dist/"
+run = "sh ./script/prepare-dist.sh"
 
 [tasks.'build:docker']
-run = 'podman build -t digger .'
+run = [
+	'podman build -t ghcr.io/piloswine1/digger:latest .',
+	'podman push ghcr.io/piloswine1/digger:latest',
+]
 
 [tasks.'run:docker']
 depends = ["build:docker"]

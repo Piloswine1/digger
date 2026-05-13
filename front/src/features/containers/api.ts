@@ -1,3 +1,5 @@
+import { apiBaseUrl } from '@/lib/api'
+
 export interface ContainerInfo {
   Id: string
   Name: string
@@ -14,7 +16,7 @@ export async function getActiveContainers(
     params.set('all', 'true')
   }
   const res = await fetch(
-    `/api/v1/containers?${params.toString()}`,
+    `${apiBaseUrl}/api/v1/containers?${params.toString()}`,
     {signal},
   )
   if (!res.ok) {
@@ -37,7 +39,7 @@ export async function getContainerLogs(
     params.set('stderr', 'true')
   }
   const res = await fetch(
-    `/api/v1/containers/${encodeURIComponent(id)}/logs?${params.toString()}`,
+    `${apiBaseUrl}/api/v1/containers/${encodeURIComponent(id)}/logs?${params.toString()}`,
     {signal},
   )
   if (!res.ok) {
@@ -48,7 +50,7 @@ export async function getContainerLogs(
 
 export async function restartContainer(id: string): Promise<string> {
   const res = await fetch(
-    `/api/v1/containers/${encodeURIComponent(id)}/restart`,
+    `${apiBaseUrl}/api/v1/containers/${encodeURIComponent(id)}/restart`,
     {method: 'POST'},
   )
   if (!res.ok) {
@@ -59,7 +61,7 @@ export async function restartContainer(id: string): Promise<string> {
 
 export async function stopContainer(id: string): Promise<string> {
   const res = await fetch(
-    `/api/v1/containers/${encodeURIComponent(id)}/stop`,
+    `${apiBaseUrl}/api/v1/containers/${encodeURIComponent(id)}/stop`,
     {method: 'POST'},
   )
   if (!res.ok) {
@@ -70,7 +72,7 @@ export async function stopContainer(id: string): Promise<string> {
 
 export async function startContainer(id: string): Promise<string> {
   const res = await fetch(
-    `/api/v1/containers/${encodeURIComponent(id)}/start`,
+    `${apiBaseUrl}/api/v1/containers/${encodeURIComponent(id)}/start`,
     {method: 'POST'},
   )
   if (!res.ok) {

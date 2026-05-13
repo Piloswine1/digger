@@ -1,3 +1,6 @@
+LABEL org.opencontainers.image.source=https://github.com/Piloswine1/digger
+LABEL org.opencontainers.image.licenses=MIT
+
 FROM docker.io/library/golang:1.26-alpine as build
 
 RUN apk add --no-cache ca-certificates git upx
