@@ -13,6 +13,13 @@ const props = defineProps<{
   container: ContainerInfo
 }>()
 
+const containerStatus = computed(() => {
+  if (props.container.Status.startsWith("Exited")) {
+    return "Exited"
+  }
+  return props.container.Status;
+})
+
 const {restart, stop, start} = useContainerActions()
 
 const shortId = computed(() => props.container.Id.slice(0, 12))
@@ -30,7 +37,7 @@ const selected = defineModel<string>();
   <Card
     :class="
       cn(
-        'cursor-pointer transition-all hover:ring-2 hover:ring-primary/50',
+        'cursor-pointer transition-all hover:ring-2 hover:ring-primary/50 ml-1 mr-3',
         selected === container.Id && 'ring-2 ring-primary',
       )
     "
@@ -38,8 +45,8 @@ const selected = defineModel<string>();
   >
     <div class="p-4 flex items-center gap-3">
       <Container class="h-5 w-5 text-muted-foreground shrink-0" />
-      <div class="flex-1 min-w-0">
-        <div class="font-medium truncate">{{ container.Name }}</div>
+      <div class="flex-1 min-w-0" :title="container.Name">
+        <div class="font-medium break-all">{{ container.Name }}</div>
       </div>
       <div class="flex flex-col items-end gap-1">
         <Badge variant="secondary" class="font-mono text-xs shrink-0">
@@ -48,8 +55,9 @@ const selected = defineModel<string>();
         <Badge
           :variant="containerVariant"
           class="font-mono text-xs shrink-0"
+          :title="container.Status"
         >
-          {{ container.Status }}
+          {{ containerStatus }}
         </Badge>
       </div>
       <div class="flex items-center gap-0.5 shrink-0" @click.stop>

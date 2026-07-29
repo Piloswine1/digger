@@ -17,7 +17,7 @@ const selectedContainerId = ref('')
 </script>
 
 <template>
-  <div class="min-h-screen pr6 max-w-7xl mx-auto">
+  <div class="min-h-screen pr6 max-w-[140rem] mx-auto">
     <div class="flex items-crnter gap-2 mb-6 pt-4">
       <ContainersSelector v-model="containersMode" class="flex-1" />
       <Button variant="outline" size="sm" @click="refetch()" :disabled="isLoading">
@@ -31,8 +31,11 @@ const selectedContainerId = ref('')
     <div v-else-if="isError" class="text-destructive text-sm">
       Error: {{ (error as Error)?.message }}
     </div>
-    <div v-else class="grid grid-cols-1 lg:grid-cols-[350px_1fr] gap-6 items-start">
-      <div class="space-y-2">
+    <div v-else
+      :class="[
+        'grid grid-cols-1 lg:grid-cols-[450px_1fr] gap-6 items-start',
+      ]">
+      <div class="space-y-2 max-h-[calc(100vh-6rem)] overflow-y-auto py-2">
         <div v-if="!containers?.length" class="text-muted-foreground text-sm">
           No active containers
         </div>

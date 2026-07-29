@@ -1,3 +1,6 @@
+allowBuilds:
+  vue-demi: false
+
 overrides:
   'vue': 'beta'
   '@vue/compiler-core': 'beta'

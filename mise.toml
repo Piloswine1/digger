@@ -1,5 +1,6 @@
 [tools]
 go = "latest"
+node = "latest"
 
 [tasks.'podman:socket']
 run = 'podman system service -t 0'
